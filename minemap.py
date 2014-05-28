@@ -109,8 +109,8 @@ def configSanityChecks():
     
     # map possible negative coordinates to an image by
     # normalize the values using zero as the baseline.
-    xOffset = ((minX < 0) and abs(minX) or 0) + NORMALIZATION_PADDING
-    yOffset = ((minY < 0) and abs(minY) or 0) + NORMALIZATION_PADDING
+    xOffset = ((minX < 0) and abs(minX) or 0)
+    yOffset = ((minY < 0) and abs(minY) or 0)
     print('Normalizing coordinates...')
     landmarks = config.get('Landmarks')
     for pointName, pointData in landmarks.items():
@@ -122,10 +122,10 @@ def configSanityChecks():
         config['Landmarks'][pointName]['position'] = (intX, intY)
     
     # Test for an unreasonable map size
-    # Add padding all around the image
-    imagePadding = NORMALIZATION_PADDING * 2
-    mapWidth, mapHeight = (maxX - minX + imagePadding, maxY - minY + imagePadding)
-    print('The map size is %sx%s' % (mapWidth, mapHeight))
+    mapWidth, mapHeight = (maxX - minX, maxY - minY)
+    print('The map size is %sx%s, this scales to %sx%s' % \
+            (mapWidth, mapHeight, 
+            mapWidth * mapScale, mapHeight * mapScale))
     if (mapWidth < 1 or mapHeight < 1):
         print('The map size does not make sense, I cannot create it.')
         return False
@@ -143,7 +143,13 @@ def generateMapImage():
     
     """
     
-    canvas = Image.new('RGB', Vars['MapSize'], color='#ffffff')
+    
+    config = Vars['Config']
+    mapScale = int(config['Map']['Scale'])
+    mapSize = Vars['MapSize']
+    mapRescaled = (mapSize[0] * mapScale + NORMALIZATION_PADDING, 
+                    mapSize[1] * mapScale + NORMALIZATION_PADDING)
+    canvas = Image.new('RGB', mapRescaled, color='#ffffff')
     draw = ImageDraw.Draw(canvas)
     halfway = MARKER_SIZE / 2
 
@@ -153,8 +159,8 @@ def generateMapImage():
         
         # get this point data
         x, y = pointData['position']
-        intX = int(x)
-        intY = int(y)
+        intX = int(x) * mapScale
+        intY = int(y) * mapScale
         
         # draw the landmark image, or the marker dot if no image
         if pointData.has_key('image'):
