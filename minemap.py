@@ -153,8 +153,10 @@ def generateMapImage():
     # add the padding to the image
     mapRescaled = (mapRescaled[0] + NORMALIZATION_PADDING * 2,
                     mapRescaled[1] + NORMALIZATION_PADDING * 2)
+    # get or use the default canvas color
+    canvasColor = config['Map'].get('Backcolor', '#ffffff')
     # create the image and drawing objects
-    canvas = Image.new('RGB', mapRescaled, color='#ffffff')
+    canvas = Image.new('RGB', mapRescaled, color=canvasColor)
     draw = ImageDraw.Draw(canvas)
     # half the marker to center them
     halfway = MARKER_SIZE / 2
