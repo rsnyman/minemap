@@ -23,7 +23,7 @@ from PIL import Image, ImageDraw, ImageFont
 NORMALIZATION_PADDING = 100
 
 # The radius of the dot markers placed for landmarks
-MARKER_SIZE = 25
+MARKER_SIZE = 5
 
 # Stores Vars for this running instance.
 # This is more a neater way to handle our 
@@ -107,18 +107,14 @@ def configSanityChecks():
         minY = min(minY, intY)
         maxY = max(maxY, intY)
     
-    # map possible negative coordinates to an image by
-    # normalize the values using zero as the baseline.
-    xOffset = ((minX < 0) and abs(minX) or 0)
-    yOffset = ((minY < 0) and abs(minY) or 0)
     print('Normalizing coordinates...')
     landmarks = config.get('Landmarks')
     for pointName, pointData in landmarks.items():
         x, y = pointData['position']
         intX = int(x)
         intY = int(y)
-        intX = intX + xOffset
-        intY = intY + yOffset
+        intX = maxX - intX
+        intY = intY
         config['Landmarks'][pointName]['position'] = (intX, intY)
     
     # Test for an unreasonable map size
