@@ -77,8 +77,19 @@ def configSanityChecks():
                 ' are no Landmarks defined inside of it.')
         return False
     
+    # Test for a map scale value
+    if config['Map'].has_key('Scale'):
+        try:
+            mapScale = int(config['Map']['Scale'])
+            print('The map scale is %s' % mapScale)
+        except ValueError, e:
+            print('Invalid map scale. Assuming the default.')
+            config['Map']['Scale'] = 1
+    else:
+        config['Map']['Scale'] = 1
+    
     print('Calculating map size...')
-    minX, minY, maxX, maxY = (100, 100, -100, -100)
+    minX, minY, maxX, maxY = (30927, 30927, -30912, -30912)
     Landmarks = config.get('Landmarks')
     for pointName, pointData in Landmarks.items():
         x, y = pointData['position']
