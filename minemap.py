@@ -68,17 +68,17 @@ def configSanityChecks():
     
     """
     
-    # Test for missing points
-    pointCount = len(Vars['Config'].get('Points'))
+    # Test for missing Landmarks
+    pointCount = len(Vars['Config'].get('Landmarks'))
     if pointCount == 0:
-        print('This config does not have a [Points] section, or there' \
-                ' are no points defined inside of it.')
+        print('This config does not have a [Landmarks] section, or there' \
+                ' are no Landmarks defined inside of it.')
         return False
     
     print('Calculating map size...')
     minX, minY, maxX, maxY = (100, 100, -100, -100)
-    points = Vars['Config'].get('Points')
-    for pointName, pointData in points.items():
+    Landmarks = Vars['Config'].get('Landmarks')
+    for pointName, pointData in Landmarks.items():
         x, y = pointData['position']
         try:
             intX = int(x)
@@ -99,14 +99,14 @@ def configSanityChecks():
     xOffset = ((minX < 0) and abs(minX) or 0) + NORMALIZATION_PADDING
     yOffset = ((minY < 0) and abs(minY) or 0) + NORMALIZATION_PADDING
     print('Normalizing coordinates...')
-    points = Vars['Config'].get('Points')
-    for pointName, pointData in points.items():
+    landmarks = Vars['Config'].get('Landmarks')
+    for pointName, pointData in landmarks.items():
         x, y = pointData['position']
         intX = int(x)
         intY = int(y)
         intX = intX + xOffset
         intY = intY + yOffset
-        Vars['Config']['Points'][pointName]['position'] = (intX, intY)
+        Vars['Config']['Landmarks'][pointName]['position'] = (intX, intY)
     
     # Test for an unreasonable map size
     # Add padding all around the image
@@ -135,8 +135,8 @@ def generateMapImage():
     halfway = MARKER_SIZE / 2
 
     # Process each point
-    points = Vars['Config'].get('Points')
-    for pointName, pointData in points.items():
+    landmarks = Vars['Config'].get('Landmarks')
+    for pointName, pointData in landmarks.items():
         x, y = pointData['position']
         intX = int(x)
         intY = int(y)
