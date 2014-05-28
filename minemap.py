@@ -107,6 +107,9 @@ def configSanityChecks():
         minY = min(minY, intY)
         maxY = max(maxY, intY)
     
+    yOffset = minY < 0 and abs(minY) or 0
+    print('y offset', yOffset)
+    
     print('Normalizing coordinates...')
     landmarks = config.get('Landmarks')
     for pointName, pointData in landmarks.items():
@@ -114,11 +117,11 @@ def configSanityChecks():
         intX = int(x)
         intY = int(y)
         intX = maxX - intX
-        intY = intY
+        intY = intY + yOffset
         config['Landmarks'][pointName]['position'] = (intX, intY)
     
     # Test for an unreasonable map size
-    mapWidth, mapHeight = (maxX - minX, maxY)
+    mapWidth, mapHeight = (maxX - minX, maxY + yOffset)
     print('The map size is %sx%s, this scales to %sx%s' % \
             (mapWidth, mapHeight, 
             mapWidth * mapScale, mapHeight * mapScale))
@@ -164,6 +167,7 @@ def generateMapImage():
         x, y = pointData['position']
         intX = NORMALIZATION_PADDING + (int(x) * mapScale)
         intY = NORMALIZATION_PADDING + (int(y) * mapScale)
+        print(pointName, intX, intY)
         
         # draw the landmark image, or the marker dot if no image
         if pointData.has_key('image'):
