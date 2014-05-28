@@ -68,8 +68,10 @@ def configSanityChecks():
     
     """
     
+    config = Vars['Config']
+    
     # Test for missing Landmarks
-    pointCount = len(Vars['Config'].get('Landmarks'))
+    pointCount = len(config.get('Landmarks'))
     if pointCount == 0:
         print('This config does not have a [Landmarks] section, or there' \
                 ' are no Landmarks defined inside of it.')
@@ -77,7 +79,7 @@ def configSanityChecks():
     
     print('Calculating map size...')
     minX, minY, maxX, maxY = (100, 100, -100, -100)
-    Landmarks = Vars['Config'].get('Landmarks')
+    Landmarks = config.get('Landmarks')
     for pointName, pointData in Landmarks.items():
         x, y = pointData['position']
         try:
@@ -99,14 +101,14 @@ def configSanityChecks():
     xOffset = ((minX < 0) and abs(minX) or 0) + NORMALIZATION_PADDING
     yOffset = ((minY < 0) and abs(minY) or 0) + NORMALIZATION_PADDING
     print('Normalizing coordinates...')
-    landmarks = Vars['Config'].get('Landmarks')
+    landmarks = config.get('Landmarks')
     for pointName, pointData in landmarks.items():
         x, y = pointData['position']
         intX = int(x)
         intY = int(y)
         intX = intX + xOffset
         intY = intY + yOffset
-        Vars['Config']['Landmarks'][pointName]['position'] = (intX, intY)
+        config['Landmarks'][pointName]['position'] = (intX, intY)
     
     # Test for an unreasonable map size
     # Add padding all around the image
