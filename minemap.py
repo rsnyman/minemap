@@ -118,7 +118,7 @@ def configSanityChecks():
         config['Landmarks'][pointName]['position'] = (intX, intY)
     
     # Test for an unreasonable map size
-    mapWidth, mapHeight = (maxX - minX, maxY - minY)
+    mapWidth, mapHeight = (maxX - minX, maxY)
     print('The map size is %sx%s, this scales to %sx%s' % \
             (mapWidth, mapHeight, 
             mapWidth * mapScale, mapHeight * mapScale))
