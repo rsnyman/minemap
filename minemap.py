@@ -147,20 +147,25 @@ def generateMapImage():
     config = Vars['Config']
     mapScale = int(config['Map']['Scale'])
     mapSize = Vars['MapSize']
-    mapRescaled = (mapSize[0] * mapScale + NORMALIZATION_PADDING, 
-                    mapSize[1] * mapScale + NORMALIZATION_PADDING)
+    # scale the map
+    mapRescaled = (mapSize[0] * mapScale,
+                    mapSize[1] * mapScale)
+    # add the padding to the image
+    mapRescaled = (mapRescaled[0] + NORMALIZATION_PADDING * 2,
+                    mapRescaled[1] + NORMALIZATION_PADDING * 2)
+    # create the image and drawing objects
     canvas = Image.new('RGB', mapRescaled, color='#ffffff')
     draw = ImageDraw.Draw(canvas)
+    # half the marker to center them
     halfway = MARKER_SIZE / 2
-
     # Process each point
     landmarks = Vars['Config'].get('Landmarks')
     for pointName, pointData in landmarks.items():
         
         # get this point data
         x, y = pointData['position']
-        intX = int(x) * mapScale
-        intY = int(y) * mapScale
+        intX = NORMALIZATION_PADDING + (int(x) * mapScale)
+        intY = NORMALIZATION_PADDING + (int(y) * mapScale)
         
         # draw the landmark image, or the marker dot if no image
         if pointData.has_key('image'):
