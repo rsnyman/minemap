@@ -17,7 +17,7 @@
 import os
 import sys
 from configobj4 import ConfigObj
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 # Pad the positions with this many pixels
 NORMALIZATION_PADDING = 100
@@ -133,7 +133,7 @@ def generateMapImage():
     canvas = Image.new('RGB', Vars['MapSize'], color='#ffffff')
     draw = ImageDraw.Draw(canvas)
     halfway = MARKER_SIZE / 2
-    
+
     # Process each point
     points = Vars['Config'].get('Points')
     for pointName, pointData in points.items():
@@ -143,6 +143,10 @@ def generateMapImage():
         draw.ellipse(
             (intX - halfway, intY - halfway, 
             intX + halfway, intY + halfway),
+            fill='#000000')
+        draw.text(
+            (intX + MARKER_SIZE, intY),
+            pointName,
             fill='#000000')
         
     # write the image
