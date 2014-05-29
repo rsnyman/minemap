@@ -242,6 +242,10 @@ def generateMapImage():
         
         # print the landmark name
         draw.text(
+            (intX + MARKER_SIZE + 1, intY + 1),
+            pointName,
+            fill='#ffffff')
+        draw.text(
             (intX + MARKER_SIZE, intY),
             pointName,
             fill='#000000')
