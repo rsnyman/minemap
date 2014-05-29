@@ -19,9 +19,6 @@ import sys
 from configobj4 import ConfigObj
 from PIL import Image, ImageDraw, ImageFont
 
-# Pad the positions with this many pixels
-NORMALIZATION_PADDING = 100
-
 # The radius of the dot markers placed for landmarks
 MARKER_SIZE = 5
 
@@ -80,6 +77,8 @@ def configSanityChecks():
         print('Config is missing a [Map] section.');
         return False
     
+    mapConfig = config['Map']
+    
     # Test for an output Filename
     if not config['Map'].has_key('Filename'):
         print('Config is missing a [Map][[Filename]] entry.')
@@ -93,15 +92,26 @@ def configSanityChecks():
         return False
     
     # Test for a map scale value
-    if config['Map'].has_key('Scale'):
+    if mapConfig.has_key('Scale'):
         try:
-            mapScale = int(config['Map']['Scale'])
+            mapScale = int(mapConfig['Scale'])
             print('The map scale is %s' % mapScale)
         except ValueError, e:
             print('Invalid map scale. Assuming the default.')
-            config['Map']['Scale'] = 1
+            mapConfig['Scale'] = 1
     else:
-        config['Map']['Scale'] = 1
+        mapConfig['Scale'] = 1
+    
+    # Test for map padding
+    if mapConfig.has_key('Padding'):
+        for n in range(0, 3):
+            try:
+                nValue = int(mapConfig['Padding'][n])
+            except ValueError:
+                print('The map Padding has an invalid value. Ignoring.')
+                mapConfig['Padding'][n] = 0
+    else:
+        mapConfig['Padding'] = (0, 0, 0, 0)
     
     print('Calculating map size...')
     minX, minY, maxX, maxY = (30927, 30927, -30912, -30912)
@@ -157,22 +167,35 @@ def generateMapImage():
     """
     
     
+    LEFT, TOP, RIGHT, BOTTOM = (0, 1, 2, 3)
     config = Vars['Config']
-    mapScale = int(config['Map']['Scale'])
+    mapConfig = config['Map']
+    mapScale = int(mapConfig['Scale'])
     mapSize = Vars['MapSize']
+    
     # scale the map
-    mapRescaled = (mapSize[0] * mapScale,
-                    mapSize[1] * mapScale)
+    mapRescaled = (mapSize[0] * mapScale, mapSize[1] * mapScale)
+    
     # add the padding to the image
-    mapRescaled = (mapRescaled[0] + NORMALIZATION_PADDING * 2,
-                    mapRescaled[1] + NORMALIZATION_PADDING * 2)
+    mapRescaled = (
+        mapRescaled[0] + 
+        int(mapConfig['Padding'][LEFT]) + 
+        int(mapConfig['Padding'][RIGHT]),
+        mapRescaled[1] + 
+        int(mapConfig['Padding'][TOP]) + 
+        int(mapConfig['Padding'][BOTTOM])
+        )
+        
     # get or use the default canvas color
     canvasColor = config['Map'].get('Backcolor', '#ffffff')
+    
     # create the image and drawing objects
     canvas = Image.new('RGB', mapRescaled, color=canvasColor)
     draw = ImageDraw.Draw(canvas)
+    
     # half the marker to center image pastes
     halfway = MARKER_SIZE / 2
+    
     # tile a background image
     if config['Map'].has_key('BackgroundTile'):
         tileImageFile = os.path.join(Vars['ConfigPath'], config['Map']['BackgroundTile'])
@@ -190,8 +213,9 @@ def generateMapImage():
         
         # get this point data
         x, y = pointData['position']
-        intX = NORMALIZATION_PADDING + (int(x) * mapScale)
-        intY = NORMALIZATION_PADDING + (int(y) * mapScale)
+        intX = int(mapConfig['Padding'][LEFT]) + (int(x) * mapScale)
+        intY = int(mapConfig['Padding'][TOP]) + (int(y) * mapScale)
+        
         print('* %s' % pointName)
         
         # draw the landmark image, or the marker dot if no image
