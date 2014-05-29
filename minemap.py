@@ -252,7 +252,7 @@ class MapMaker(object):
             draw.text((x + MARKER_SIZE, y), point_name, fill=SHADOW_COLOR)
 
         # write the image
-        output_filename = os.path.realpath(self.map[u'map'][u'filename'])
+        output_filename = os.path.join(self.json_file_path, self.map[u'map'][u'filename'])
         canvas.save(output_filename)
         self.log(u'Saved the map as %s' % output_filename)
 
