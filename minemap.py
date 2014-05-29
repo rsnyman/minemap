@@ -30,22 +30,19 @@ Vars = {}
 
 def handleCommandLine():
     """
-    Handles command line arguments, printing help where necessary
-    and storing values in our Vars object.
+    Get the config filename from the command line.
 
     """
 
-    for index, arg in enumerate(sys.argv):
-        if arg == '--help':
-            showHelp()
-            return False
-        elif index > 0:
-            Vars['configFile'] = arg
-            # get the path of the config file
-            configPath = os.path.dirname(os.path.realpath(arg))
-            Vars['ConfigPath'] = configPath
-
-    return True
+    if len(sys.argv) == 2:
+        configFile = sys.argv[1]
+        configPath = os.path.dirname(os.path.realpath(configFile))
+        Vars['ConfigFile'] = configFile
+        Vars['ConfigPath'] = configPath
+        return True
+    else:
+        print('Usage: %s [map.config]' % os.path.basename(sys.argv[0]))
+        return False
 
 
 def loadConfig():
@@ -55,7 +52,7 @@ def loadConfig():
     """
 
     try:
-        Vars['Config'] = ConfigObj(Vars['configFile'], file_error=True)
+        Vars['Config'] = ConfigObj(Vars['ConfigFile'], file_error=True)
         return True
     except Exception, e:
         print(e)
@@ -69,13 +66,12 @@ def configSanityChecks():
 
     """
 
-    config = Vars['Config']
-
     # Test for a map section
-    if not 'Map' in config:
+    if not 'Map' in Vars['Config']:
         print('Config is missing a [Map] section.')
         return False
 
+    config = Vars['Config']
     mapConfig = config['Map']
 
     # Test for an output Filename
@@ -174,19 +170,15 @@ def generateMapImage():
     mapRescaled = (mapSize[0] * mapScale, mapSize[1] * mapScale)
 
     # add the padding to the image
-    mapRescaled = (
-        mapRescaled[0] +
-        int(mapConfig['Padding'][LEFT]) +
-        int(mapConfig['Padding'][RIGHT]),
-        mapRescaled[1] +
-        int(mapConfig['Padding'][TOP]) +
-        int(mapConfig['Padding'][BOTTOM])
-        )
-
-    # get or use the default canvas color
-    canvasColor = config['Map'].get('Backcolor', '#ffffff')
+    mapRescaled = (mapRescaled[0] +
+                   int(mapConfig['Padding'][LEFT]) +
+                   int(mapConfig['Padding'][RIGHT]),
+                   mapRescaled[1] +
+                   int(mapConfig['Padding'][TOP]) +
+                   int(mapConfig['Padding'][BOTTOM]))
 
     # create the image and drawing objects
+    canvasColor = config['Map'].get('Backcolor', '#ffffff')
     canvas = Image.new('RGB', mapRescaled, color=canvasColor)
     draw = ImageDraw.Draw(canvas)
 
@@ -197,31 +189,28 @@ def generateMapImage():
     if 'BackgroundTile' in config['Map']:
         tileImageFile = os.path.join(Vars['ConfigPath'],
                                      config['Map']['BackgroundTile'])
-        tileImage = Image.open(tileImageFile)
-        print('Found background tile image: %sx%s, tiling...' % tileImage.size)
-        for tileX in range(0, mapRescaled[0], tileImage.size[0]):
-            for tileY in range(0, mapRescaled[1], tileImage.size[1]):
-                canvas.paste(
-                    tileImage,
-                    (tileX, tileY,
-                     tileX + tileImage.size[0],
-                     tileY + tileImage.size[1]))
-    # Process each point
+        if not os.path.exists(tileImageFile):
+            print('Background %s not found.' % tileImageFile)
+        else:
+            tileImage = Image.open(tileImageFile)
+            for tileX in range(0, mapRescaled[0], tileImage.size[0]):
+                for tileY in range(0, mapRescaled[1], tileImage.size[1]):
+                    canvas.paste(tileImage,
+                                 (tileX, tileY,
+                                  tileX + tileImage.size[0],
+                                  tileY + tileImage.size[1]))
+
     landmarks = Vars['Config'].get('Landmarks')
-    print('Drawing landmarks: ')
-
     for pointName, pointData in landmarks.items():
-
-        # get this point data
+        print('* %s' % pointName)
         x, y = pointData['position']
         intX = int(mapConfig['Padding'][LEFT]) + (int(x) * mapScale)
         intY = int(mapConfig['Padding'][TOP]) + (int(y) * mapScale)
 
-        print('* %s' % pointName)
-
-        # draw the landmark image, or the marker dot if no image
+        # draw the landmark image or the marker dot
         if 'image' in pointData:
-            imageFile = os.path.join(Vars['ConfigPath'], pointData['image'])
+            imageFile = os.path.join(Vars['ConfigPath'],
+                                     pointData['image'])
             if not os.path.exists(imageFile):
                 print('\t* missing "%s"' % imageFile)
             else:
@@ -236,25 +225,22 @@ def generateMapImage():
                     mask=landmarkImage
                     )
         else:
-            draw.ellipse((
-                intX - halfway, intY - halfway,
-                intX + halfway, intY + halfway),
-                fill='#000000')
+            draw.ellipse((intX - halfway, intY - halfway,
+                         intX + halfway, intY + halfway),
+                         fill='#000000')
 
-        # print the landmark name
-        draw.text(
-            (intX + MARKER_SIZE + 1, intY + 1),
-            pointName,
-            fill='#ffffff')
-        draw.text(
-            (intX + MARKER_SIZE, intY),
-            pointName,
-            fill='#000000')
+        # print the landmark name (embossed)
+        draw.text((intX + MARKER_SIZE + 1, intY + 1),
+                  pointName,
+                  fill='#ffffff')
+        draw.text((intX + MARKER_SIZE, intY),
+                  pointName,
+                  fill='#000000')
 
-    # write the image
     outputFilename = os.path.realpath(config['Map']['Filename'])
     canvas.save(outputFilename)
     print('Saved the map as %s' % outputFilename)
+
 
 if __name__ == "__main__":
     """
