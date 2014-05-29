@@ -20,10 +20,10 @@ An example config file reads:
 
         [[ The Waterfall ]]
         position = 10, 10
-        
+
         [[ The Well ]]
         position = 60, 30
-        
+
         [[ The Lighthouse ]]
         position = 10, 100
 
