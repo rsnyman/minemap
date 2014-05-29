@@ -70,6 +70,16 @@ def configSanityChecks():
     
     config = Vars['Config']
     
+    # Test for a map section
+    if not config.has_key('Map'):
+        print('Config is missing a [Map] section.');
+        return False
+    
+    # Test for an output Filename
+    if not config['Map'].has_key('Filename'):
+        print('Config is missing a [Map][[Filename]] entry.')
+        return False
+    
     # Test for missing Landmarks
     pointCount = len(config.get('Landmarks'))
     if pointCount == 0:
@@ -198,7 +208,7 @@ def generateMapImage():
             fill='#000000')
         
     # write the image
-    canvas.save('/tmp/canvas.png')
+    canvas.save(config['Map']['Filename'])
 
 if __name__ == "__main__":
     """
