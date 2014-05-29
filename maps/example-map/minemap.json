@@ -1,0 +1,63 @@
+{
+    "map": {
+        "title": "Example World",
+        "filename": "example-world.png",
+        "scale": 2,
+        "backcolor": "#7d7966",
+        "background_tile": "paper.png",
+        "padding": [100, 100, 100, 100]
+    },
+    "landmarks": {
+        "Bone Falls": {
+            "position": [-295, 274]
+        },
+        "Papyrus Farm": {
+            "position": [-355, 261]
+        },
+        "Library": {
+            "position": [-300, 224]
+        },
+        "Memory Falls": {
+            "position": [-400, 244]
+        },
+        "Grandma's brick house": {
+            "position": [-316, 78]
+        },
+        "Castle": {
+            "position": [-311, 50]
+        },
+        "Underwater Adventure": {
+            "position": [-326, 93]
+        },
+        "Rose Walk": {
+            "position": [-203, 250]
+        },
+        "Glass Greenhouse": {
+            "position": [-147, 184]
+        },
+        "Stone Cube Artwork": {
+            "position": [-166, 374]
+        },
+        "Area 42": {
+            "position": [-138, 313]
+        },
+        "Lost temple of the Great White Handkerchief": {
+            "position": [-61, 230]
+        },
+        "Mazal's Home": {
+            "position": [-72, 181]
+        },
+        "Fountain of everlasting youth": {
+            "position": [-169, 138]
+        },
+        "Many Miles underground": {
+            "position": [-147, 72]
+        },
+        "The Dizzying Glass Platform": {
+            "position": [-62, 101]
+        },
+        "The Water Falls": {
+            "position": [-112, -138]
+        }
+    }
+}
