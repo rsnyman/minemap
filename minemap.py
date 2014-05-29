@@ -171,19 +171,21 @@ def generateMapImage():
     halfway = MARKER_SIZE / 2
     # Process each point
     landmarks = Vars['Config'].get('Landmarks')
+    print('Drawing landmarks: ')
+    
     for pointName, pointData in landmarks.items():
         
         # get this point data
         x, y = pointData['position']
         intX = NORMALIZATION_PADDING + (int(x) * mapScale)
         intY = NORMALIZATION_PADDING + (int(y) * mapScale)
-        print(pointName, intX, intY)
+        print('* %s' % pointName)
         
         # draw the landmark image, or the marker dot if no image
         if pointData.has_key('image'):
             imageFile = pointData['image']
             if not os.path.exists(imageFile):
-                print(' * Missing: landmark "%s" image "%s"' % (pointName, imageFile))
+                print('\t* missing "%s"' % imageFile)
             else:
                 landmarkImage = Image.open(imageFile)
                 # center the image on our point position
