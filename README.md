@@ -16,7 +16,7 @@ An example config file reads:
     [ Map ]
     Title = "Hello, World."
 
-    [ Points ]
+    [ Landmarks ]
 
         [[ The Waterfall ]]
         position = 10, 10
@@ -27,7 +27,7 @@ An example config file reads:
         [[ The Lighthouse ]]
         position = 10, 100
 
-Map title is quoted for best results, and a list of points on the map are defined under the Points section. Section names do not require spacing between the brackets, but are encouraged for readability. The number of brackets increase for each level.
+Map title is quoted for best results, and a list of landmarks on the map are defined under the Landmarks section. Section names do not require spacing between the brackets, but are encouraged for readability. The number of brackets increase for each level.
 
 The above example is a fully functional configuration for generating the map, albeit a bland one at that. For a full listing of all available map and point settings see the minemap.sample.conf file.
 
