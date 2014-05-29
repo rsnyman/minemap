@@ -2,6 +2,11 @@
 
 Minemap is a tool that generates an top-down aerial map from values fed in through a config file. This tool started as a way to map out minetest worlds by recording notable positions and giving them clever names.
 
+# Requirements
+
+* Python 2.7
+* Python PIL
+
 # Config file format
 
 The config file simply describes a list of (x, y) positions, each has a name of the landmark at that position, and a couple of other optional attributes that tweak the drawing style of the point in question.
