@@ -47,7 +47,7 @@ def handleCommandLine():
             Vars['configFile'] = arg
             # get the path of the config file
             configPath = os.path.dirname(os.path.realpath(arg))
-            Vars['configPath'] = configPath
+            Vars['ConfigPath'] = configPath
     
     return True
 
@@ -123,7 +123,6 @@ def configSanityChecks():
         maxY = max(maxY, intY)
     
     yOffset = minY < 0 and abs(minY) or 0
-    print('y offset', yOffset)
     
     print('Normalizing coordinates...')
     landmarks = config.get('Landmarks')
@@ -172,8 +171,17 @@ def generateMapImage():
     # create the image and drawing objects
     canvas = Image.new('RGB', mapRescaled, color=canvasColor)
     draw = ImageDraw.Draw(canvas)
-    # half the marker to center them
+    # half the marker to center image pastes
     halfway = MARKER_SIZE / 2
+    # tile a background image
+    if config['Map'].has_key('BackgroundTile'):
+        tileImageFile = os.path.join(Vars['ConfigPath'], config['Map']['BackgroundTile'])
+        tileImage = Image.open(tileImageFile)
+        print('Found background tile image: %sx%s, tiling...' % tileImage.size)
+        for tileX in range(0, mapRescaled[0], tileImage.size[0]):
+            for tileY in range(0, mapRescaled[1], tileImage.size[1]):
+                canvas.paste(tileImage, 
+                        (tileX, tileY, tileX + tileImage.size[0], tileY + tileImage.size[1]))
     # Process each point
     landmarks = Vars['Config'].get('Landmarks')
     print('Drawing landmarks: ')
@@ -188,7 +196,7 @@ def generateMapImage():
         
         # draw the landmark image, or the marker dot if no image
         if pointData.has_key('image'):
-            imageFile = os.path.join(Vars['configPath'], pointData['image'])
+            imageFile = os.path.join(Vars['ConfigPath'], pointData['image'])
             if not os.path.exists(imageFile):
                 print('\t* missing "%s"' % imageFile)
             else:
@@ -215,7 +223,9 @@ def generateMapImage():
             fill='#000000')
         
     # write the image
-    canvas.save(config['Map']['Filename'])
+    outputFilename = os.path.realpath(config['Map']['Filename'])
+    canvas.save(outputFilename)
+    print('Saved the map as %s' % outputFilename)
 
 if __name__ == "__main__":
     """
