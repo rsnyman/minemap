@@ -37,13 +37,18 @@ def handleCommandLine():
     and storing values in our Vars object.
     
     """
-    
+
+
     for index, arg in enumerate(sys.argv):
         if arg == '--help':
             showHelp()
             return False
         elif index > 0:
             Vars['configFile'] = arg
+            # get the path of the config file
+            configPath = os.path.dirname(os.path.realpath(arg))
+            Vars['configPath'] = configPath
+    
     return True
 
 
@@ -183,7 +188,7 @@ def generateMapImage():
         
         # draw the landmark image, or the marker dot if no image
         if pointData.has_key('image'):
-            imageFile = pointData['image']
+            imageFile = os.path.join(Vars['configPath'], pointData['image'])
             if not os.path.exists(imageFile):
                 print('\t* missing "%s"' % imageFile)
             else:
