@@ -249,7 +249,7 @@ class MapMaker(object):
             draw.text((x + MARKER_SIZE, y), point_name, fill=SHADOW_COLOR)
 
         # write the image
-        output_filename = os.path.realpath(self.config.filename)
+        output_filename = self.config.relative_path(self.config.filename)
         canvas.save(output_filename)
         self.log(u'Saved the map as %s' % output_filename)
 
