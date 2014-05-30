@@ -7,11 +7,83 @@ Minemap is a tool that generates an top-down aerial map from values fed in throu
 * Python 2.7
 * Python PIL
 
-# Using MineMap
+# Map definition
 
-    python minemap.py --map-file [path to json configuration]
+The map is defined as a json formatted file:
 
-The map is saved in the same location as the config.
+    {
+        "map": {
+            "title": "Hello World",
+            "filename": "hello-world.png",
+            "scale": 2,
+            "background_color": "#dddddd",
+            "background_tile": "tile.png",
+            "landmark_font": "font.ttf 24",
+            "padding": [100, 100, 100, 100]
+        },
+        "landmarks": {
+            "Water Falls": {
+                "position": [-295, 274]
+            },
+            "Wheat Farm": {
+                "position": [-355, 261]
+            },
+            "Swimming Pond": {
+                "position": [-300, 224]
+            },
+            "Brick house": {
+                "position": [-316, 78],
+                "image": "house.png"
+            },
+            "Castle": {
+                "position": [-311, 50],
+                "image": "house.png"
+            },
+        }
+    }
+
+ * the map section sets:
+    * title: Your map title, currently not used.
+    * filename: Save the map image as this, in the same directory as the json definition.
+    * scale: Size the map by this factor, useful when points are very near another and their titles overlap.
+    * background_color and background_tile (optional): Tile an image as the background, or use a color if no image set or found.
+    * landmark_font (optional): Use a true type font for the landmark titles, the font size is given as the second value.
+    * padding (optional): Pad the map by [Left, Top, Right, Bottom] pixels, useful to avoid landmark titles from being cropped.
+ * the landmarks section lists each by name:
+    * position: The coordinate as [x, y].
+    * image (optional): Use an image instead of drawing a dot marker.
+
+# Supported image formats
+
+The prominent formats are `png` and `jpg`, with `pdf` and `gif` also supported. For the complete list see http://www.effbot.org/imagingbook/formats.htm
+
+# Suggested map structure
+
+When you start loading in images I recommend you put each map in it's own directory, to keep things tidy:
+
+     ./maps
+     |
+     hello-world-map
+     |  |
+     |  hello-world.json
+     |  waterfall.png
+     |  well.png
+     |  hill.png
+     |  myfont.ttf
+     |
+     online-world-map
+     |  |
+     |  online-world.json
+     |  river.png
+     |  castle.png
+
+# Generating the map image
+
+    python minemap.py -m hello-world.json
+
+Also see:
+
+    python minemap.py --help
 
 # License
 
