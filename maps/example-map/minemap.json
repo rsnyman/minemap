@@ -4,7 +4,7 @@
         "filename": "example-world.png",
         "scale": 2,
         "background_color": "#7d7966",
-        "background_tile": "paper.png",
+        "background_tile": "stone-tile.png",
         "padding": [100, 100, 100, 100]
     },
     "landmarks": {
