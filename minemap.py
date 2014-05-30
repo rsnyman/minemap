@@ -29,8 +29,8 @@ MIN_X, MIN_Y, MAX_X, MAX_Y = 30927, 30927, -30912, -30912
 LEFT, TOP, RIGHT, BOTTOM = 0, 1, 2, 3
 # Map colours
 MARKER_COLOR = u'#000000'
-TEXT_COLOR = u'#ffffff'
-SHADOW_COLOR = u'#000000'
+TEXT_COLOR = u'#000000'
+SHADOW_COLOR = u'#aaaaaa'
 BACKGROUND_COLOR = u'#ffffff'
 
 
@@ -99,6 +99,14 @@ class MapConfig(object):
     @size.setter
     def size(self, value):
         self.map[u'size'] = value
+
+    @property
+    def landmark_font(self):
+        return self.relative_path(self.map[u'landmark_font'].split(' ')[0])
+
+    @property
+    def landmark_font_size(self):
+        return int(self.map[u'landmark_font'].split(' ')[1])
 
     def is_integer(self, test_value):
         """
@@ -217,6 +225,8 @@ class MapMaker(object):
                 for tile_y in range(0, map_rescaled[1], tile_image.size[1]):
                     canvas.paste(tile_image, (tile_x, tile_y, tile_x + tile_image.size[0], tile_y + tile_image.size[1]))
 
+        landmark_font = ImageFont.truetype(self.config.landmark_font, self.config.landmark_font_size)
+
         self.log(u'Drawing landmarks...')
         for point_name, point_data in self.config.landmarks.iteritems():
             x, y = point_data[u'position']
@@ -244,8 +254,8 @@ class MapMaker(object):
                 draw.ellipse((x - halfway, y - halfway, x + halfway, y + halfway), fill=MARKER_COLOR)
 
             # print the landmark name
-            draw.text((x + MARKER_SIZE + 1, y + 1), point_name, fill=TEXT_COLOR)
-            draw.text((x + MARKER_SIZE, y), point_name, fill=SHADOW_COLOR)
+            draw.text((x + MARKER_SIZE + 1, y + 1), point_name, fill=SHADOW_COLOR, font=landmark_font)
+            draw.text((x + MARKER_SIZE, y), point_name, fill=TEXT_COLOR, font=landmark_font)
 
         # write the image
         output_filename = self.config.relative_path(self.config.filename)

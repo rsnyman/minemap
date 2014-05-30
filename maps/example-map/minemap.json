@@ -5,6 +5,7 @@
         "scale": 2,
         "background_color": "#7d7966",
         "background_tile": "stone-tile.png",
+        "landmark_font": "Treamd.ttf 24",
         "padding": [100, 100, 100, 100]
     },
     "landmarks": {
