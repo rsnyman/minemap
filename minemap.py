@@ -115,9 +115,9 @@ class MapMaker(object):
         for point_name, point_data in self.map[u'landmarks'].iteritems():
             try:
                 # X
-                self.map[u'landmarks'][point_name][u'position'][0] = int(point_data[u'position'][0])
+                int(point_data[u'position'][0])
                 # Y
-                self.map[u'landmarks'][point_name][u'position'][1] = int(point_data[u'position'][1])
+                int(point_data[u'position'][1])
             except ValueError:
                 raise MapFileError(u'The point "%s" has a bad position value and cannot be processed' % point_name)
 
