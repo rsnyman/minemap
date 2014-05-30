@@ -186,7 +186,7 @@ class MapMaker(object):
         and storing values in our Vars object.
         """
         parser = ArgumentParser(description=DESCRIPTION)
-        parser.add_argument('-m', '--map-file', metavar='FILENAME', required=True, help='The map file')
+        parser.add_argument('-m', '--map-file', metavar='FILENAME', required=True, help='The map definition (json)')
         parser.add_argument('-v', '--verbose', action='store_true', default=False, help='Be verbose')
         self.options = parser.parse_args()
         if self.options.verbose:
