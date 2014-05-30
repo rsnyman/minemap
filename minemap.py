@@ -45,13 +45,121 @@ class MapFileError(Exception):
         self.message = message
 
 
+class MapConfig(object):
+    """
+    Wraps the json data into a neat object.
+    """
+    def __init__(self, json_file_name):
+        """
+        Reads a json config file and validates some of the required values.
+        """
+        self.json_file_name = json_file_name
+        self.base_path = os.path.dirname(self.json_file_name)
+        self.json_data = None
+        self.messages = []
+        with open(self.json_file_name) as json_file:
+            self.json_data = json.loads(json_file.read())
+        self.check_config()
+
+    @property
+    def map(self):
+        return self.json_data['map']
+
+    @property
+    def title(self):
+        return self.map[u'title']
+
+    @property
+    def filename(self):
+        return self.map[u'filename']
+
+    @property
+    def scale(self):
+        return self.map[u'scale']
+
+    @property
+    def background_color(self):
+        return self.map.get(u'background_color', BACKGROUND_COLOR)
+
+    @property
+    def background_tile(self):
+        return self.map.get(u'background_tile', None)
+
+    @property
+    def padding(self):
+        return self.map[u'padding']
+
+    @property
+    def landmarks(self):
+        return self.json_data[u'landmarks']
+
+    @property
+    def size(self):
+        return self.map[u'size']
+
+    @size.setter
+    def size(self, value):
+        self.map[u'size'] = value
+
+    def is_integer(self, test_value):
+        """
+        Tests if a value is a number.
+        """
+        try:
+            int(test_value)
+            return True
+        except (ValueError):
+            return False
+
+    def relative_path(self, path):
+        """
+        Returns a path relative to the json data file.
+        """
+        return os.path.join(self.base_path, path)
+
+    def check_config(self):
+        """
+        Do basic value validation.
+        """
+        for point_name, point_data in self.landmarks.iteritems():
+            x, y = point_data[u'position']
+            if not self.is_integer(x) or not self.is_integer(y):
+                raise MapFileError(u'The point "%s" has a bad position value and cannot be processed' % point_name)
+
+        self.messages.append(u'Calculating map size...')
+        min_x, min_y, max_x, max_y = MIN_X, MIN_Y, MAX_X, MAX_Y
+        for point_name, point_data in self.landmarks.iteritems():
+            x, y = point_data[u'position'][0], point_data[u'position'][1]
+            min_x = min(min_x, x)
+            max_x = max(max_x, x)
+            min_y = min(min_y, y)
+            max_y = max(max_y, y)
+
+        y_offset = min_y < 0 and abs(min_y) or 0
+
+        self.messages.append(u'Normalizing coordinates...')
+        for point_name, point_data in self.landmarks.iteritems():
+            x, y = point_data[u'position'] #[0], point_data[u'position'][1]
+            x = max_x - x
+            y = y + y_offset
+            self.landmarks[point_name][u'position'][0] = x
+            self.landmarks[point_name][u'position'][1] = y
+
+        # Test for an unreasonable map size
+        map_width, map_height = (max_x - min_x, max_y + y_offset)
+        self.messages.append(u'Map scales to %sx%s' % (map_width * self.scale, map_height * self.scale))
+
+        if map_width < 1 or map_height < 1:
+            raise MapFileError(u'The map size does not make sense, it cannot be created.')
+
+        self.size = [map_width, map_height]
+
+
 class MapMaker(object):
     """
     Make a map from a map config file.
     """
-    map = None
-    json_file_name = u''
-    json_file_path = u''
+    config = None
     options = None
     verbose = False
 
@@ -77,144 +185,32 @@ class MapMaker(object):
         if self.options.verbose:
             self.verbose = True
 
-    def setup_map_file(self):
-        """
-        Set up the configuration file and load it into a config object.
-        """
-        self.json_file_name = os.path.abspath(self.options.map_file)
-        self.json_file_path = os.path.dirname(self.json_file_name)
-        try:
-            with open(self.json_file_name) as json_file:
-                self.map = json.loads(json_file.read())
-            return True
-        except (ValueError, TypeError):
-            return False
-
-    def is_integer(self, test_value):
-        """
-        Returns True if the given test_value is a number.
-        """
-        try:
-            int(test_value)
-            return True
-        except (ValueError):
-            return False
-
-    def check_config(self):
-        """
-        Process the config values and performs a couple of sanity checks
-        to make sure we have everything we need, and that the values
-        are within a sane range.
-        """
-        # Test for a map section
-        if u'map' not in self.map:
-            raise MapFileError(u'Map file is missing a [map] section')
-
-        # Test for an output Filename
-        if u'filename' not in self.map[u'map']:
-            raise MapFileError(u'Config is missing a [map]:[filename] entry.')
-
-        # Test for missing Landmarks
-        if u'landmarks' not in self.map:
-            raise MapFileError(u'Config is missing a [landmarks] section')
-
-        if not len(self.map[u'landmarks']):
-            raise MapFileError(u'There are no landmarks defined in the [landmarks] section of the config')
-
-        for point_name, point_data in self.map[u'landmarks'].iteritems():
-            x, y = point_data[u'position']
-            if not self.is_integer(x) or not self.is_integer(y):
-                raise MapFileError(u'The point "%s" has a bad position value and cannot be processed' % point_name)
-
-    def parse_map(self):
-        """
-        Parse the map file and set up various values.
-        """
-        # check for map scale value
-        if u'scale' in self.map[u'map']:
-            if not self.is_integer(self.map[u'map'][u'scale']):
-                self.log(u'Invalid map scale. Assuming the default.', verbose=True)
-                self.map[u'map'][u'scale'] = 1
-        else:
-            self.map[u'map'][u'scale'] = 1
-        self.log(u'The map scale is %s' % self.map[u'map'][u'scale'])
-
-        # Test for map padding
-        if u'padding' in self.map[u'map'] and len(self.map[u'map'][u'padding']) == 4:
-            for padding_index in range(0, 3):
-                if not self.is_integer(self.map[u'map'][u'padding'][padding_index]):
-                    self.map[u'map'][u'padding'][padding_index] = 0
-        else:
-            self.log(u'The map padding has an invalid value. Ignoring.', verbose=True)
-            self.map[u'map'][u'padding'] = [0, 0, 0, 0]
-        self.log(u'The map padding is %s' % self.map[u'map'][u'padding'])
-
-        self.log(u'Calculating map size...')
-        min_x, min_y, max_x, max_y = MIN_X, MIN_Y, MAX_X, MAX_Y
-        for point_name, point_data in self.map[u'landmarks'].iteritems():
-            x, y = point_data[u'position'][0], point_data[u'position'][1]
-            # remember the largest and smallest values
-            min_x = min(min_x, x)
-            max_x = max(max_x, x)
-            min_y = min(min_y, y)
-            max_y = max(max_y, y)
-
-        y_offset = min_y < 0 and abs(min_y) or 0
-
-        self.log(u'Normalizing coordinates...')
-        for point_name, point_data in self.map[u'landmarks'].iteritems():
-            x, y = point_data[u'position'][0], point_data[u'position'][1]
-            x = max_x - x
-            y = y + y_offset
-            self.map[u'landmarks'][point_name][u'position'][0] = x
-            self.map[u'landmarks'][point_name][u'position'][1] = y
-
-        # Test for an unreasonable map size
-        map_width, map_height = (max_x - min_x, max_y + y_offset)
-        self.log(u'Map size is %sx%s, which scales to %sx%s' % (map_width, map_height,
-                                                                map_width * self.map[u'map'][u'scale'],
-                                                                map_height * self.map[u'map'][u'scale']),
-                 verbose=True)
-
-        if map_width < 1 or map_height < 1:
-            raise MapFileError(u'The map size does not make sense, it cannot be created.')
-
-        if map_width > 2000 or map_height > 2000:
-            reply = raw_input(u'This is a large map, continue? [Y/n]: ')
-            if reply.lower()[0] in [u'n', u'f', u'0']:
-                return False
-        self.map[u'size'] = [map_width, map_height]
-        return True
-
     def generate_image(self):
         """
         Creates a new image canvas and renders the map information to it.
         """
         # scale the map
         map_rescaled = (
-            self.map[u'size'][0] * self.map[u'map'][u'scale'],
-            self.map[u'size'][1] * self.map[u'map'][u'scale']
+            self.config.size[0] * self.config.scale,
+            self.config.size[1] * self.config.scale
         )
 
         # add the padding to the image
         map_rescaled = (
-            map_rescaled[0] + self.map[u'map'][u'padding'][LEFT] + self.map[u'map'][u'padding'][RIGHT],
-            map_rescaled[1] + self.map[u'map'][u'padding'][TOP] + self.map[u'map'][u'padding'][BOTTOM]
+            map_rescaled[0] + self.config.padding[LEFT] + self.config.padding[RIGHT],
+            map_rescaled[1] + self.config.padding[TOP] + self.config.padding[BOTTOM]
         )
 
-        # get or use the default canvas color
-        canvas_color = self.map[u'map'].get(u'backcolor', BACKGROUND_COLOR)
-
         # create the image and drawing objects
-        canvas = Image.new(u'RGB', map_rescaled, color=canvas_color)
+        canvas = Image.new(u'RGB', map_rescaled, color=self.config.background_color)
         draw = ImageDraw.Draw(canvas)
 
         # half the marker to center image pastes
         halfway = MARKER_SIZE / 2
 
         # tile a background image
-        if u'background_tile' in self.map[u'map']:
-            tile_image_file = os.path.join(self.json_file_path, self.map[u'map'][u'background_tile'])
+        if self.config.background_tile:
+            tile_image_file = self.config.relative_path(self.config.background_tile)
             tile_image = Image.open(tile_image_file)
             self.log(u'Found background tile image: %sx%s, tiling...' % tile_image.size, verbose=True)
 
@@ -222,21 +218,24 @@ class MapMaker(object):
                 for tile_y in range(0, map_rescaled[1], tile_image.size[1]):
                     canvas.paste(tile_image, (tile_x, tile_y, tile_x + tile_image.size[0], tile_y + tile_image.size[1]))
 
-        # Process each point
         self.log(u'Drawing landmarks...')
-        for point_name, point_data in self.map[u'landmarks'].iteritems():
-            # Set up point data
-            x = self.map[u'map'][u'padding'][LEFT] + point_data[u'position'][0] * self.map[u'map'][u'scale']
-            y = self.map[u'map'][u'padding'][TOP] + point_data[u'position'][1] * self.map[u'map'][u'scale']
+        for point_name, point_data in self.config.landmarks.iteritems():
+            x, y = point_data[u'position']
+            # scale up
+            x *= self.config.scale
+            y *= self.config.scale
+            # apply padding
+            x += self.config.padding[LEFT]
+            y += self.config.padding[TOP]
             self.log(u'* %s' % point_name, verbose=True)
 
-            # draw the landmark image, or the marker dot if no image
+            # draw the landmark image
             if u'image' in point_data:
-                image_file = os.path.join(self.json_file_path, point_data[u'image'])
+                image_file = self.config.relative_path(point_data[u'image'])
                 if not os.path.exists(image_file):
                     self.log(u'  [Error] missing "%s"' % image_file)
                 else:
-                    # Centre the image on our point position
+                    # center the image on our point position
                     landmark_image = Image.open(image_file)
                     size_x, size_y = landmark_image.size
                     image_x = x - (size_x / 2)
@@ -250,7 +249,7 @@ class MapMaker(object):
             draw.text((x + MARKER_SIZE, y), point_name, fill=SHADOW_COLOR)
 
         # write the image
-        output_filename = os.path.realpath(self.map[u'map'][u'filename'])
+        output_filename = os.path.realpath(self.config.filename)
         canvas.save(output_filename)
         self.log(u'Saved the map as %s' % output_filename)
 
@@ -259,14 +258,8 @@ class MapMaker(object):
         Run the map maker
         """
         self.parse_arguments()
-        carry_on = self.setup_map_file()
-        if not carry_on:
-            return
         try:
-            self.check_config()
-            carry_on = self.parse_map()
-            if not carry_on:
-                return
+            self.config = MapConfig(self.options.map_file)
             self.generate_image()
             self.log(u'Done')
         except MapFileError as e:
@@ -274,5 +267,7 @@ class MapMaker(object):
 
 
 if __name__ == u'__main__':
+    #c = MapConfig('maps/example-map/minemap.json')
+    #print(c.scale)
     map_maker = MapMaker()
     map_maker.run()

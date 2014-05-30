@@ -3,7 +3,7 @@
         "title": "Example World",
         "filename": "example-world.png",
         "scale": 2,
-        "backcolor": "#7d7966",
+        "background_color": "#7d7966",
         "background_tile": "paper.png",
         "padding": [100, 100, 100, 100]
     },
