@@ -90,12 +90,21 @@ class MapMaker(object):
         except (ValueError, TypeError):
             return False
 
+    def is_integer(self, test_value):
+        """
+        Returns True if the given test_value is a number.
+        """
+        try:
+            int(test_value)
+            return True
+        except (ValueError):
+            return False
+
     def check_config(self):
         """
         Process the config values and performs a couple of sanity checks
         to make sure we have everything we need, and that the values
         are within a sane range.
-
         """
         # Test for a map section
         if u'map' not in self.map:
@@ -113,12 +122,8 @@ class MapMaker(object):
             raise MapFileError(u'There are no landmarks defined in the [landmarks] section of the config')
 
         for point_name, point_data in self.map[u'landmarks'].iteritems():
-            try:
-                # X
-                int(point_data[u'position'][0])
-                # Y
-                int(point_data[u'position'][1])
-            except ValueError:
+            x, y = point_data[u'position']
+            if not self.is_integer(x) or not self.is_integer(y):
                 raise MapFileError(u'The point "%s" has a bad position value and cannot be processed' % point_name)
 
     def parse_map(self):
@@ -126,25 +131,18 @@ class MapMaker(object):
         Parse the map file and set up various values.
         """
         # check for map scale value
-        if u'Scale' in self.map[u'map']:
-            if not isinstance(self.map[u'map'][u'scale'], int):
-                try:
-                    self.map[u'map'][u'scale'] = int(self.map[u'map'][u'scale'])
-                except (ValueError, TypeError):
-                    self.log(u'Invalid map scale. Assuming the default.', verbose=True)
-                    self.map[u'map'][u'scale'] = 1
+        if u'scale' in self.map[u'map']:
+            if not self.is_integer(self.map[u'map'][u'scale']):
+                self.log(u'Invalid map scale. Assuming the default.', verbose=True)
+                self.map[u'map'][u'scale'] = 1
         else:
-            self.log(u'Invalid map scale. Assuming the default.', verbose=True)
             self.map[u'map'][u'scale'] = 1
         self.log(u'The map scale is %s' % self.map[u'map'][u'scale'])
 
         # Test for map padding
         if u'padding' in self.map[u'map'] and len(self.map[u'map'][u'padding']) == 4:
             for padding_index in range(0, 3):
-                try:
-                    self.map[u'map'][u'padding'][padding_index] = int(self.map[u'map'][u'padding'][padding_index])
-                except ValueError:
-                    self.log(u'The map padding has an invalid value. Ignoring.', verbose=True)
+                if not self.is_integer(self.map[u'map'][u'padding'][padding_index]):
                     self.map[u'map'][u'padding'][padding_index] = 0
         else:
             self.log(u'The map padding has an invalid value. Ignoring.', verbose=True)
@@ -179,7 +177,7 @@ class MapMaker(object):
                  verbose=True)
 
         if map_width < 1 or map_height < 1:
-            raise MapFileError(u'The map size does not make sense, it cannot be created')
+            raise MapFileError(u'The map size does not make sense, it cannot be created.')
 
         if map_width > 2000 or map_height > 2000:
             reply = raw_input(u'This is a large map, continue? [Y/n]: ')
