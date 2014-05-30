@@ -17,7 +17,6 @@
 import os
 import json
 from argparse import ArgumentParser
-
 from PIL import Image, ImageDraw, ImageFont
 
 # The description of this script
