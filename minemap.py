@@ -332,8 +332,8 @@ class MapMaker(object):
                     else:
                         self.draw.line(points, fill='#ffffff', width=2)
                     if self.options.debug:
-                        self.draw.text(start_pos, line_title, fill='#ffffff', font=default_font)
-                        self.draw.text(end_pos, line_title, fill='#ffffff', font=default_font)
+                        self.draw.text(start_pos, line_title, fill='#00ff00', font=default_font)
+                        self.draw.text(end_pos, line_title, fill='#00ff00', font=default_font)
 
     def add_borders(self):
         """
