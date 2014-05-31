@@ -290,7 +290,7 @@ class MapMaker(object):
                         y - (landmark_image.size[1] / 2))
                     self.image.paste(landmark_image, image_position, mask=landmark_image)
             else:
-                self.draw.ellipse((x - halfway, y - halfway, x + halfway, y + halfway), fill=MARKER_COLOR)
+                self.draw.ellipse((x, y, x + MARKER_SIZE, y + MARKER_SIZE), fill=MARKER_COLOR)
 
             # print title
             self.draw.text((x + MARKER_SIZE + 1, y + 1), point_name, fill=SHADOW_COLOR, font=landmark_font)
@@ -303,8 +303,8 @@ class MapMaker(object):
         self.log(u'Drawing decorations...')
         for deco_name, deco_data in self.config.decorations.iteritems():
             deco_image = self.load_image(deco_data[u'image'])
-            if 'lines' in deco_data:
-                for line_data in deco_data[u'lines']:
+            if deco_data[u'type'] == 'line':
+                for line_data in deco_data[u'points']:
                     points = self.config.translate(line_data)
                     if deco_image:
                         start_pos = (points[0], points[1])
