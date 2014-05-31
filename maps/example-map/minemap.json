@@ -2,7 +2,7 @@
     "map": {
         "title": "Example World",
         "filename": "example-world.png",
-        "scale": 2,
+        "scale": 5,
         "background_color": "#7d7966",
         "background_tile": "stone-tile.png",
         "landmark_font": "Treamd.ttf 24",
@@ -12,6 +12,12 @@
         "title_font": "Treamd.ttf 60"
     },
     "landmarks": {
+        "Kilo's Kastle": {
+            "position": [-127, 67]
+        },
+        "The Big R": {
+            "position": [-238, 50]
+        },
         "Bone Falls": {
             "position": [-295, 274]
         },
@@ -45,7 +51,7 @@
         "Area 42": {
             "position": [-138, 313]
         },
-        "Lost temple of the Great White Handkerchief": {
+        "Lost Temple": {
             "position": [-61, 230]
         },
         "Mazal's Home": {
@@ -62,14 +68,43 @@
         },
         "The Water Falls": {
             "position": [-112, -138]
+        },
+        "Sky Island": {
+            "position": [-417, -2]
         }
     },
     "decorations": {
         "roads": {
             "image": "stone-road.png",
             "type": "line",
-            "points": [[-112, -138, -62, 101],
-                      [-72, 181, -138, 313]]
+            "data": {
+                "R1": [-168, 73, -162, 200],
+                "R2": [-162, 200, -162, 254],
+                "R3": [-204, 255, -69, 255],
+                "R4": [-69, 250, 8, 250],
+                "R5": [8, 258, 57, 258],
+                "R6": [-204, 250, -323, 250],
+                "R7": [-323, 250, -323, 374],
+                "R8": [-447, 374, -137, 374],
+                "R9": [-450, 353, -573, 353],
+                "R10": [-500, 353, -500, 268],
+                "R42": [-138, 375, -138, 255],
+                "U1": [-381, -62, -381, -2],
+                "U2": [-381, -2, -417, -2],
+                "U3": [-417, -2, -417, 57],
+                "U4": [-439, 57, -288, 57],
+                "U5": [-262, 57, -260, 57],
+                "U6": [-260, 57, -260, 50],
+                "U7": [-260, 50, -235, 50],
+                "U8": [-235, 50, -235, 35]
+            }
+        },
+        "stairs": {
+            "image": "stone-stair.png",
+            "type": "line",
+            "data": {
+                "unknown": [-288, 57, -262, 57]
+            }
         }
     }
 }

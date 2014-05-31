@@ -316,10 +316,11 @@ class MapMaker(object):
         Draw map decorations.
         """
         self.log(u'Drawing decorations...')
+        default_font = ImageFont.load_default()
         for deco_name, deco_data in self.config.decorations.iteritems():
             deco_image = self.load_image(deco_data[u'image'])
             if deco_data[u'type'] == 'line':
-                for line_data in deco_data[u'points']:
+                for line_title, line_data in deco_data[u'data'].iteritems():
                     points = self.config.translate(line_data)
                     if deco_image:
                         start_pos = (points[0], points[1])
@@ -329,6 +330,8 @@ class MapMaker(object):
                             self.image.paste(deco_image, (x, y), mask=deco_image)
                     else:
                         self.draw.line(points, fill='#ffffff', width=2)
+                    self.draw.text(start_pos, line_title, fill='#ffffff', font=default_font)
+                    self.draw.text(end_pos, line_title, fill='#ffffff', font=default_font)
 
     def add_borders(self):
         """
