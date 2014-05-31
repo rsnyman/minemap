@@ -229,6 +229,7 @@ class MapMaker(object):
         """
         parser = ArgumentParser(description=DESCRIPTION)
         parser.add_argument('-m', '--map-file', metavar='FILENAME', required=True, help='The map definition (json)')
+        parser.add_argument('-d', '--debug', action='store_true', default=False, help='Print debug symbols on the map')
         parser.add_argument('-v', '--verbose', action='store_true', default=False, help='Be verbose')
         self.options = parser.parse_args()
         if self.options.verbose:
@@ -330,8 +331,9 @@ class MapMaker(object):
                             self.image.paste(deco_image, (x, y), mask=deco_image)
                     else:
                         self.draw.line(points, fill='#ffffff', width=2)
-                    self.draw.text(start_pos, line_title, fill='#ffffff', font=default_font)
-                    self.draw.text(end_pos, line_title, fill='#ffffff', font=default_font)
+                    if self.options.debug:
+                        self.draw.text(start_pos, line_title, fill='#ffffff', font=default_font)
+                        self.draw.text(end_pos, line_title, fill='#ffffff', font=default_font)
 
     def add_borders(self):
         """
