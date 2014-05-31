@@ -57,6 +57,8 @@ class MapConfig(object):
         self.base_path = os.path.dirname(self.json_file_name)
         self.json_data = None
         self.messages = []
+        self.translate_max_x = None
+        self.translate_y_offset = None
         with open(self.json_file_name) as json_file:
             self.json_data = json.loads(json_file.read())
         self.check_config()
@@ -92,6 +94,10 @@ class MapConfig(object):
     @property
     def landmarks(self):
         return self.json_data[u'landmarks']
+
+    @property
+    def decorations(self):
+        return self.json_data[u'decorations']
 
     @property
     def size(self):
@@ -143,24 +149,41 @@ class MapConfig(object):
             min_y = min(min_y, y)
             max_y = max(max_y, y)
 
-        y_offset = min_y < 0 and abs(min_y) or 0
+        self.translate_max_x = max_x
+        self.translate_y_offset = min_y < 0 and abs(min_y) or 0
 
-        self.messages.append(u'Normalizing coordinates...')
-        for point_name, point_data in self.landmarks.iteritems():
-            x, y = point_data[u'position'] #[0], point_data[u'position'][1]
-            x = max_x - x
-            y = y + y_offset
-            self.landmarks[point_name][u'position'][0] = x
-            self.landmarks[point_name][u'position'][1] = y
+        #self.messages.append(u'Normalizing coordinates...')
+        #for point_name, point_data in self.landmarks.iteritems():
+            #x, y = point_data[u'position'] #[0], point_data[u'position'][1]
+            #x = max_x - x
+            #y = y + y_offset
+            #self.landmarks[point_name][u'position'][0] = x
+            #self.landmarks[point_name][u'position'][1] = y
 
         # Test for an unreasonable map size
-        map_width, map_height = (max_x - min_x, max_y + y_offset)
+        map_width, map_height = (max_x - min_x, max_y + self.translate_y_offset)
         self.messages.append(u'Map scales to %sx%s' % (map_width * self.scale, map_height * self.scale))
 
         if map_width < 1 or map_height < 1:
             raise MapFileError(u'The map size does not make sense, it cannot be created.')
 
         self.size = [map_width, map_height]
+
+    def translate(self, xy):
+        """
+        Translate a list of points into image coordinates.
+        """
+        # translate
+        x, y = xy
+        x = self.translate_max_x - x
+        y = y + self.translate_y_offset
+        # scale up
+        x *= self.scale
+        y *= self.scale
+        # apply padding
+        x += self.padding[LEFT]
+        y += self.padding[TOP]
+        return (x, y)
 
 
 class MapMaker(object):
@@ -214,30 +237,34 @@ class MapMaker(object):
         landmark_font = ImageFont.truetype(self.config.landmark_font, self.config.landmark_font_size)
         self.log(u'Drawing landmarks...')
         for point_name, point_data in self.config.landmarks.iteritems():
-            x, y = point_data[u'position']
-            # scale up
-            x *= self.config.scale
-            y *= self.config.scale
-            # apply padding
-            x += self.config.padding[LEFT]
-            y += self.config.padding[TOP]
             self.log(u'* %s' % point_name, verbose=True)
-
-            # draw the landmark image
+            x, y = self.config.translate(point_data[u'position'])
             if u'image' in point_data:
                 landmark_image = self.load_image(point_data[u'image'])
                 if landmark_image:
-                    # center the image on our point position
-                    size_x, size_y = landmark_image.size
-                    image_x = x - (size_x / 2)
-                    image_y = y - (size_y / 2)
-                    self.image.paste(landmark_image, (image_x, image_y), mask=landmark_image)
+                    image_position = (
+                        x - (landmark_image.size[0] / 2),
+                        y - (landmark_image.size[1] / 2))
+                    self.image.paste(landmark_image, image_position, mask=landmark_image)
             else:
                 self.draw.ellipse((x - halfway, y - halfway, x + halfway, y + halfway), fill=MARKER_COLOR)
 
             # print title
             self.draw.text((x + MARKER_SIZE + 1, y + 1), point_name, fill=SHADOW_COLOR, font=landmark_font)
             self.draw.text((x + MARKER_SIZE, y), point_name, fill=TEXT_COLOR, font=landmark_font)
+
+    def draw_decorations(self):
+        """
+        Draw map decorations.
+        """
+        self.log(u'Drawing decorations...')
+        for deco_name, deco_data in self.config.decorations.iteritems():
+            deco_image = self.load_image(deco_data[u'image'])
+            if deco_image:
+                if 'lines' in deco_data:
+                    print('line %s' % deco_data[u'lines'])
+                    self.draw.line(tuple(deco_data[u'lines']), fill='#ffffff', width=2)
+                    pass
 
     def generate_image(self):
         """
@@ -271,6 +298,7 @@ class MapMaker(object):
                     for tile_y in range(0, map_rescaled[1], tile_image.size[1]):
                         self.image.paste(tile_image, (tile_x, tile_y, tile_x + tile_image.size[0], tile_y + tile_image.size[1]))
 
+        self.draw_decorations()
         self.draw_landmarks()
         output_filename = self.config.relative_path(self.config.filename)
         self.image.save(output_filename)
