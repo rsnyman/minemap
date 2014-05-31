@@ -49,19 +49,33 @@ The map is defined as a json formatted file:
                 "position": [-311, 50],
                 "image": "house.png"
             },
+        },
+        "decorations": {
+            "roads": {
+                "image": "stone-road.png",
+                "type": "line",
+                "points": [[-112, -138, -62, 101],
+                          [-72, 181, -138, 313]]
+            }
         }
     }
 
- * the map section sets:
+ * Map:
     * title: Your map title, currently not used.
     * filename: Save the map image as this, in the same directory as the json definition.
     * scale: Size the map by this factor, useful when points are very near another and their titles overlap.
     * background_color and background_tile (optional): Tile an image as the background, or use a color if no image set or found.
     * landmark_font (optional): Use a true type font for the landmark titles, the font size is given as the second value.
     * padding (optional): Pad the map by [Left, Top, Right, Bottom] pixels, useful to avoid landmark titles from being cropped.
- * the landmarks section lists each by name:
+ * Landmarks:
     * position: The coordinate as [x, y].
     * image (optional): Use an image instead of drawing a dot marker.
+ * Decorations:
+    * List of decorations by name, each with:
+        * image: Used to draw this decoration.
+        * type: How the decoration is drawn. Available types:
+            * line
+        * points: coordinate data for this decoration
 
 # Supported image formats
 
