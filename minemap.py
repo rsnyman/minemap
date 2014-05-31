@@ -129,6 +129,10 @@ class MapConfig(object):
         if u'border_color' in self.map:
             return self.map[u'border_color']
 
+    @property
+    def title_font(self):
+        return self.map.get(u'title_font', None)
+
     def is_integer(self, test_value):
         """
         Tests if a value is a number.
@@ -338,6 +342,30 @@ class MapMaker(object):
             image_copy = self.image.copy()
             self.image = Image.new(u'RGB', new_size, color=self.config.border_color)
             self.image.paste(image_copy, (self.config.border_size, ) * 2)
+            self.draw = ImageDraw.Draw(self.image)
+
+    def load_font(self, config_string):
+        """
+        Load a font from a configuration setting.
+        """
+        font_family, font_size = config_string.split(' ')
+        if font_family and self.config.is_integer(font_size):
+            try:
+                return ImageFont.truetype(self.config.relative_path(font_family), int(font_size))
+            except IOError:
+                raise MapFileError('The font "%s" failed to load.' % font_family)
+
+    def print_map_title(self):
+        """
+        Print the map title in a large font.
+        """
+        title_font = self.load_font(self.config.title_font)
+        if title_font:
+            title_shadow_position = (self.config.border_size + 1, ) * 2
+            title_position = (self.config.border_size, ) * 2
+            print(title_shadow_position, title_position)
+            self.draw.text(title_shadow_position, self.config.title, fill=SHADOW_COLOR, font=title_font)
+            self.draw.text(title_position, self.config.title, fill=TEXT_COLOR, font=title_font)
 
     def generate_image(self):
         """
@@ -374,6 +402,7 @@ class MapMaker(object):
         self.draw_decorations()
         self.draw_landmarks()
         self.add_borders()
+        self.print_map_title()
         output_filename = self.config.relative_path(self.config.filename)
         self.image.save(output_filename)
         self.log(u'Saved the map as %s' % output_filename)
