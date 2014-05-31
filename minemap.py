@@ -195,6 +195,41 @@ class MapMaker(object):
         if self.options.verbose:
             self.verbose = True
 
+    def draw_landmarks(self):
+        """
+        Draw landmarks on the map image.
+        """
+        landmark_font = ImageFont.truetype(self.config.landmark_font, self.config.landmark_font_size)
+        self.log(u'Drawing landmarks...')
+        for point_name, point_data in self.config.landmarks.iteritems():
+            x, y = point_data[u'position']
+            # scale up
+            x *= self.config.scale
+            y *= self.config.scale
+            # apply padding
+            x += self.config.padding[LEFT]
+            y += self.config.padding[TOP]
+            self.log(u'* %s' % point_name, verbose=True)
+
+            # draw the landmark image
+            if u'image' in point_data:
+                image_file = self.config.relative_path(point_data[u'image'])
+                if not os.path.exists(image_file):
+                    self.log(u'  [Error] missing "%s"' % image_file)
+                else:
+                    # center the image on our point position
+                    landmark_image = Image.open(image_file)
+                    size_x, size_y = landmark_image.size
+                    image_x = x - (size_x / 2)
+                    image_y = y - (size_y / 2)
+                    self.image.paste(landmark_image, (image_x, image_y), mask=landmark_image)
+            else:
+                self.draw.ellipse((x - halfway, y - halfway, x + halfway, y + halfway), fill=MARKER_COLOR)
+
+            # print title
+            self.draw.text((x + MARKER_SIZE + 1, y + 1), point_name, fill=SHADOW_COLOR, font=landmark_font)
+            self.draw.text((x + MARKER_SIZE, y), point_name, fill=TEXT_COLOR, font=landmark_font)
+
     def generate_image(self):
         """
         Creates a new image and renders the map information to it.
@@ -228,39 +263,7 @@ class MapMaker(object):
                 for tile_y in range(0, map_rescaled[1], tile_image.size[1]):
                     self.image.paste(tile_image, (tile_x, tile_y, tile_x + tile_image.size[0], tile_y + tile_image.size[1]))
 
-        landmark_font = ImageFont.truetype(self.config.landmark_font, self.config.landmark_font_size)
-
-        self.log(u'Drawing landmarks...')
-        for point_name, point_data in self.config.landmarks.iteritems():
-            x, y = point_data[u'position']
-            # scale up
-            x *= self.config.scale
-            y *= self.config.scale
-            # apply padding
-            x += self.config.padding[LEFT]
-            y += self.config.padding[TOP]
-            self.log(u'* %s' % point_name, verbose=True)
-
-            # draw the landmark image
-            if u'image' in point_data:
-                image_file = self.config.relative_path(point_data[u'image'])
-                if not os.path.exists(image_file):
-                    self.log(u'  [Error] missing "%s"' % image_file)
-                else:
-                    # center the image on our point position
-                    landmark_image = Image.open(image_file)
-                    size_x, size_y = landmark_image.size
-                    image_x = x - (size_x / 2)
-                    image_y = y - (size_y / 2)
-                    self.image.paste(landmark_image, (image_x, image_y), mask=landmark_image)
-            else:
-                self.draw.ellipse((x - halfway, y - halfway, x + halfway, y + halfway), fill=MARKER_COLOR)
-
-            # print the landmark name
-            self.draw.text((x + MARKER_SIZE + 1, y + 1), point_name, fill=SHADOW_COLOR, font=landmark_font)
-            self.draw.text((x + MARKER_SIZE, y), point_name, fill=TEXT_COLOR, font=landmark_font)
-
-        # write the image
+        self.draw_landmarks()
         output_filename = self.config.relative_path(self.config.filename)
         self.image.save(output_filename)
         self.log(u'Saved the map as %s' % output_filename)
