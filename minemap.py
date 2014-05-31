@@ -173,17 +173,19 @@ class MapConfig(object):
         """
         Translate a list of points into image coordinates.
         """
-        # translate
-        x, y = xy
-        x = self.translate_max_x - x
-        y = y + self.translate_y_offset
-        # scale up
-        x *= self.scale
-        y *= self.scale
-        # apply padding
-        x += self.padding[LEFT]
-        y += self.padding[TOP]
-        return (x, y)
+        new_list = []
+        for value_index in xrange(0, len(xy), 2):
+            x, y = xy[value_index], xy[value_index + 1]
+            x = self.translate_max_x - x
+            y = y + self.translate_y_offset
+            # scale up
+            x *= self.scale
+            y *= self.scale
+            # apply padding
+            x += self.padding[LEFT]
+            y += self.padding[TOP]
+            new_list.extend((x, y))
+        return new_list
 
 
 class MapMaker(object):
@@ -217,6 +219,47 @@ class MapMaker(object):
         self.options = parser.parse_args()
         if self.options.verbose:
             self.verbose = True
+
+    def get_line_segments(self, start, end):
+        """
+        Returns a list of line segments that make up a line between two points.
+        Returns [(x1, y1), (x2, y2), ...]
+        Source: http://roguebasin.roguelikedevelopment.org/index.php?title=Bresenham%27s_Line_Algorithm
+        """
+        x1, y1 = start
+        x2, y2 = end
+        points = []
+        issteep = abs(y2 - y1) > abs(x2 - x1)
+        if issteep:
+            x1, y1 = y1, x1
+            x2, y2 = y2, x2
+        rev = False
+        if x1 > x2:
+            x1, x2 = x2, x1
+            y1, y2 = y2, y1
+            rev = True
+        deltax = x2 - x1
+        deltay = abs(y2 - y1)
+        error = int(deltax / 2)
+        y = y1
+        ystep = None
+        if y1 < y2:
+            ystep = 1
+        else:
+            ystep = -1
+        for x in range(x1, x2 + 1):
+            if issteep:
+                points.append((y, x))
+            else:
+                points.append((x, y))
+            error -= deltay
+            if error < 0:
+                y += ystep
+                error += deltax
+        # Reverse the list if the coordinates were reversed
+        if rev:
+            points.reverse()
+        return points
 
     def load_image(self, filename):
         """
@@ -260,11 +303,17 @@ class MapMaker(object):
         self.log(u'Drawing decorations...')
         for deco_name, deco_data in self.config.decorations.iteritems():
             deco_image = self.load_image(deco_data[u'image'])
-            if deco_image:
-                if 'lines' in deco_data:
-                    print('line %s' % deco_data[u'lines'])
-                    self.draw.line(tuple(deco_data[u'lines']), fill='#ffffff', width=2)
-                    pass
+            if 'lines' in deco_data:
+                for line_data in deco_data[u'lines']:
+                    points = self.config.translate(line_data)
+                    if deco_image:
+                        start_pos = (points[0], points[1])
+                        end_pos = (points[2], points[3])
+                        step = deco_image.size[0]
+                        for x, y in self.get_line_segments(start_pos, end_pos)[::step]:
+                            self.image.paste(deco_image, (x, y), mask=deco_image)
+                    else:
+                        self.draw.line(points, fill='#ffffff', width=2)
 
     def generate_image(self):
         """
