@@ -195,6 +195,18 @@ class MapMaker(object):
         if self.options.verbose:
             self.verbose = True
 
+    def load_image(self, filename):
+        """
+        Loads an image relative to the config path.
+        Returns None if the image cannot be loaded.
+        """
+        full_path = self.config.relative_path(filename)
+        try:
+            return Image.open(full_path)
+        except IOError:
+            self.log(u'\t*%s not found' % filename)
+            return None
+
     def draw_landmarks(self):
         """
         Draw landmarks on the map image.
@@ -213,12 +225,9 @@ class MapMaker(object):
 
             # draw the landmark image
             if u'image' in point_data:
-                image_file = self.config.relative_path(point_data[u'image'])
-                if not os.path.exists(image_file):
-                    self.log(u'  [Error] missing "%s"' % image_file)
-                else:
+                landmark_image = self.load_image(point_data[u'image'])
+                if landmark_image:
                     # center the image on our point position
-                    landmark_image = Image.open(image_file)
                     size_x, size_y = landmark_image.size
                     image_x = x - (size_x / 2)
                     image_y = y - (size_y / 2)
@@ -255,13 +264,12 @@ class MapMaker(object):
 
         # tile a background image
         if self.config.background_tile:
-            tile_image_file = self.config.relative_path(self.config.background_tile)
-            tile_image = Image.open(tile_image_file)
-            self.log(u'Found background tile image: %sx%s, tiling...' % tile_image.size, verbose=True)
-
-            for tile_x in range(0, map_rescaled[0], tile_image.size[0]):
-                for tile_y in range(0, map_rescaled[1], tile_image.size[1]):
-                    self.image.paste(tile_image, (tile_x, tile_y, tile_x + tile_image.size[0], tile_y + tile_image.size[1]))
+            tile_image = self.load_image(self.config.background_tile)
+            if tile_image:
+                self.log(u'Found background tile image: %sx%s, tiling...' % tile_image.size, verbose=True)
+                for tile_x in range(0, map_rescaled[0], tile_image.size[0]):
+                    for tile_y in range(0, map_rescaled[1], tile_image.size[1]):
+                        self.image.paste(tile_image, (tile_x, tile_y, tile_x + tile_image.size[0], tile_y + tile_image.size[1]))
 
         self.draw_landmarks()
         output_filename = self.config.relative_path(self.config.filename)
