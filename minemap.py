@@ -171,6 +171,7 @@ class MapMaker(object):
     options = None
     verbose = False
     image = None
+    draw = None
 
     def log(self, text, verbose=False):
         """
@@ -212,7 +213,7 @@ class MapMaker(object):
 
         # create the image and drawing objects
         self.image = Image.new(u'RGB', map_rescaled, color=self.config.background_color)
-        draw = ImageDraw.Draw(self.image)
+        self.draw = ImageDraw.Draw(self.image)
 
         # half the marker to center image pastes
         halfway = MARKER_SIZE / 2
@@ -253,11 +254,11 @@ class MapMaker(object):
                     image_y = y - (size_y / 2)
                     self.image.paste(landmark_image, (image_x, image_y), mask=landmark_image)
             else:
-                draw.ellipse((x - halfway, y - halfway, x + halfway, y + halfway), fill=MARKER_COLOR)
+                self.draw.ellipse((x - halfway, y - halfway, x + halfway, y + halfway), fill=MARKER_COLOR)
 
             # print the landmark name
-            draw.text((x + MARKER_SIZE + 1, y + 1), point_name, fill=SHADOW_COLOR, font=landmark_font)
-            draw.text((x + MARKER_SIZE, y), point_name, fill=TEXT_COLOR, font=landmark_font)
+            self.draw.text((x + MARKER_SIZE + 1, y + 1), point_name, fill=SHADOW_COLOR, font=landmark_font)
+            self.draw.text((x + MARKER_SIZE, y), point_name, fill=TEXT_COLOR, font=landmark_font)
 
         # write the image
         output_filename = self.config.relative_path(self.config.filename)
