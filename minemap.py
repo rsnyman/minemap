@@ -115,6 +115,20 @@ class MapConfig(object):
     def landmark_font_size(self):
         return int(self.map[u'landmark_font'].split(' ')[1])
 
+    @property
+    def border_size(self):
+        if u'border_size' in self.map:
+            _border_size = self.map[u'border_size']
+            if self.is_integer(_border_size):
+                return int(_border_size)
+            else:
+                return 0
+
+    @property
+    def border_color(self):
+        if u'border_color' in self.map:
+            return self.map[u'border_color']
+
     def is_integer(self, test_value):
         """
         Tests if a value is a number.
@@ -315,6 +329,16 @@ class MapMaker(object):
                     else:
                         self.draw.line(points, fill='#ffffff', width=2)
 
+    def add_borders(self):
+        """
+        Border the image.
+        """
+        if self.config.border_size and self.config.border_color:
+            new_size = tuple(s + (self.config.border_size * 2) for s in self.image.size)
+            image_copy = self.image.copy()
+            self.image = Image.new(u'RGB', new_size, color=self.config.border_color)
+            self.image.paste(image_copy, (self.config.border_size, ) * 2)
+
     def generate_image(self):
         """
         Creates a new image and renders the map information to it.
@@ -349,6 +373,7 @@ class MapMaker(object):
 
         self.draw_decorations()
         self.draw_landmarks()
+        self.add_borders()
         output_filename = self.config.relative_path(self.config.filename)
         self.image.save(output_filename)
         self.log(u'Saved the map as %s' % output_filename)
