@@ -170,6 +170,7 @@ class MapMaker(object):
     config = None
     options = None
     verbose = False
+    image = None
 
     def log(self, text, verbose=False):
         """
@@ -195,7 +196,7 @@ class MapMaker(object):
 
     def generate_image(self):
         """
-        Creates a new image canvas and renders the map information to it.
+        Creates a new image and renders the map information to it.
         """
         # scale the map
         map_rescaled = (
@@ -210,8 +211,8 @@ class MapMaker(object):
         )
 
         # create the image and drawing objects
-        canvas = Image.new(u'RGB', map_rescaled, color=self.config.background_color)
-        draw = ImageDraw.Draw(canvas)
+        self.image = Image.new(u'RGB', map_rescaled, color=self.config.background_color)
+        draw = ImageDraw.Draw(self.image)
 
         # half the marker to center image pastes
         halfway = MARKER_SIZE / 2
@@ -224,7 +225,7 @@ class MapMaker(object):
 
             for tile_x in range(0, map_rescaled[0], tile_image.size[0]):
                 for tile_y in range(0, map_rescaled[1], tile_image.size[1]):
-                    canvas.paste(tile_image, (tile_x, tile_y, tile_x + tile_image.size[0], tile_y + tile_image.size[1]))
+                    self.image.paste(tile_image, (tile_x, tile_y, tile_x + tile_image.size[0], tile_y + tile_image.size[1]))
 
         landmark_font = ImageFont.truetype(self.config.landmark_font, self.config.landmark_font_size)
 
@@ -250,7 +251,7 @@ class MapMaker(object):
                     size_x, size_y = landmark_image.size
                     image_x = x - (size_x / 2)
                     image_y = y - (size_y / 2)
-                    canvas.paste(landmark_image, (image_x, image_y), mask=landmark_image)
+                    self.image.paste(landmark_image, (image_x, image_y), mask=landmark_image)
             else:
                 draw.ellipse((x - halfway, y - halfway, x + halfway, y + halfway), fill=MARKER_COLOR)
 
@@ -260,7 +261,7 @@ class MapMaker(object):
 
         # write the image
         output_filename = self.config.relative_path(self.config.filename)
-        canvas.save(output_filename)
+        self.image.save(output_filename)
         self.log(u'Saved the map as %s' % output_filename)
 
     def run(self):
