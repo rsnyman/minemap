@@ -109,11 +109,7 @@ class MapConfig(object):
 
     @property
     def landmark_font(self):
-        return self.relative_path(self.map[u'landmark_font'].split(' ')[0])
-
-    @property
-    def landmark_font_size(self):
-        return int(self.map[u'landmark_font'].split(' ')[1])
+        return self.map.get(u'landmark_font', None)
 
     @property
     def border_size(self):
@@ -295,7 +291,7 @@ class MapMaker(object):
         """
         Draw landmarks on the map image.
         """
-        landmark_font = ImageFont.truetype(self.config.landmark_font, self.config.landmark_font_size)
+        landmark_font = self.load_font(self.config.landmark_font)
         self.log(u'Drawing landmarks...')
         for point_name, point_data in self.config.landmarks.iteritems():
             self.log(u'* %s' % point_name, verbose=True)
@@ -311,8 +307,9 @@ class MapMaker(object):
                 self.draw.ellipse((x, y, x + MARKER_SIZE, y + MARKER_SIZE), fill=MARKER_COLOR)
 
             # print title
-            self.draw.text((x + MARKER_SIZE + 1, y + 1), point_name, fill=SHADOW_COLOR, font=landmark_font)
-            self.draw.text((x + MARKER_SIZE, y), point_name, fill=TEXT_COLOR, font=landmark_font)
+            if landmark_font:
+                self.draw.text((x + MARKER_SIZE + 1, y + 1), point_name, fill=SHADOW_COLOR, font=landmark_font)
+                self.draw.text((x + MARKER_SIZE, y), point_name, fill=TEXT_COLOR, font=landmark_font)
 
     def draw_decorations(self):
         """
@@ -363,7 +360,6 @@ class MapMaker(object):
         if title_font:
             title_shadow_position = (self.config.border_size + 1, ) * 2
             title_position = (self.config.border_size, ) * 2
-            print(title_shadow_position, title_position)
             self.draw.text(title_shadow_position, self.config.title, fill=SHADOW_COLOR, font=title_font)
             self.draw.text(title_position, self.config.title, fill=TEXT_COLOR, font=title_font)
 
