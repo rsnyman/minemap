@@ -3,9 +3,13 @@
         "title": "Example World",
         "filename": "example-world.png",
         "scale": 2,
-        "backcolor": "#7d7966",
-        "background_tile": "paper.png",
-        "padding": [100, 100, 100, 100]
+        "background_color": "#7d7966",
+        "background_tile": "stone-tile.png",
+        "landmark_font": "Treamd.ttf 24",
+        "padding": [100, 100, 200, 100],
+        "border_size": 20,
+        "border_color": "#000000",
+        "title_font": "Treamd.ttf 60"
     },
     "landmarks": {
         "Bone Falls": {
@@ -58,6 +62,14 @@
         },
         "The Water Falls": {
             "position": [-112, -138]
+        }
+    },
+    "decorations": {
+        "roads": {
+            "image": "stone-road.png",
+            "type": "line",
+            "points": [[-112, -138, -62, 101],
+                      [-72, 181, -138, 313]]
         }
     }
 }

@@ -1,4 +1,4 @@
-# Minemap
+# MineMap
 
 Minemap is a tool that generates an top-down aerial map from values fed in through a config file. This tool started as a way to map out minetest worlds by recording notable positions and giving them clever names.
 
@@ -7,35 +7,107 @@ Minemap is a tool that generates an top-down aerial map from values fed in throu
 * Python 2.7
 * Python PIL
 
-# Config file format
+# Installing
 
-The config file simply describes a list of (x, y) positions, each has a name of the landmark at that position, and a couple of other optional attributes that tweak the drawing style of the point in question.
+_Steps for non git users._
 
-An example config file reads:
+    # download latest version and unzip to the "minemap" directory and symlink minemap into your path
+    wget -O minemap.zip https://github.com/wesleywerner/minemap/archive/master.zip && \
+    unzip minemap.zip && \
+    mv minemap-master minemap && cd minemap && \
+    sh link.sh
 
-    [ Map ]
-    Title = "Hello, World."
+# Map definition
 
-    [ Landmarks ]
+The map is defined as a json formatted file:
 
-        [[ The Waterfall ]]
-        position = 10, 10
+    {
+        "map": {
+            "title": "Hello World",
+            "filename": "hello-world.png",
+            "scale": 2,
+            "background_color": "#dddddd",
+            "background_tile": "tile.png",
+            "landmark_font": "font.ttf 24",
+            "padding": [100, 100, 100, 100]
+        },
+        "landmarks": {
+            "Water Falls": {
+                "position": [-295, 274]
+            },
+            "Wheat Farm": {
+                "position": [-355, 261]
+            },
+            "Swimming Pond": {
+                "position": [-300, 224]
+            },
+            "Brick house": {
+                "position": [-316, 78],
+                "image": "house.png"
+            },
+            "Castle": {
+                "position": [-311, 50],
+                "image": "house.png"
+            },
+        },
+        "decorations": {
+            "roads": {
+                "image": "stone-road.png",
+                "type": "line",
+                "points": [[-112, -138, -62, 101],
+                          [-72, 181, -138, 313]]
+            }
+        }
+    }
 
-        [[ The Well ]]
-        position = 60, 30
+ * Map:
+    * title: Your map title, currently not used.
+    * filename: Save the map image as this, in the same directory as the json definition.
+    * scale: Size the map by this factor, useful when points are very near another and their titles overlap.
+    * background_color and background_tile (optional): Tile an image as the background, or use a color if no image set or found.
+    * landmark_font (optional): Use a true type font for the landmark titles, the font size is given as the second value.
+    * padding (optional): Pad the map by [Left, Top, Right, Bottom] pixels, useful to avoid landmark titles from being cropped.
+ * Landmarks:
+    * position: The coordinate as [x, y].
+    * image (optional): Use an image instead of drawing a dot marker.
+ * Decorations:
+    * List of decorations by name, each with:
+        * image: Used to draw this decoration.
+        * type: How the decoration is drawn. Available types:
+            * line
+        * points: coordinate data for this decoration
 
-        [[ The Lighthouse ]]
-        position = 10, 100
+# Supported image formats
 
-Map title is quoted for best results, and a list of landmarks on the map are defined under the Landmarks section. Section names do not require spacing between the brackets, but are encouraged for readability. The number of brackets increase for each level.
+The prominent formats are `png` and `jpg`, with `pdf` and `gif` also supported. For the complete list see http://www.effbot.org/imagingbook/formats.htm
 
-The above example is a fully functional configuration for generating the map, albeit a bland one at that. For a full listing of all available map and point settings see the minemap.sample.conf file.
+# Suggested map structure
 
-# Generating the map
+When you start loading in images I recommend you put each map in it's own directory, to keep things tidy:
 
-    python minemap.py <config>
+     ./maps
+     |
+     hello-world-map
+     |  |
+     |  hello-world.json
+     |  waterfall.png
+     |  well.png
+     |  hill.png
+     |  myfont.ttf
+     |
+     online-world-map
+     |  |
+     |  online-world.json
+     |  river.png
+     |  castle.png
 
-Will create the map image and save it in the same location as the config with the default naming scheme. More on the output name format in the minemap.sample.conf file.
+# Generating the map image
+
+    python minemap.py -m hello-world.json
+
+Also see:
+
+    python minemap.py --help
 
 # License
 
