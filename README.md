@@ -7,6 +7,16 @@ Minemap is a tool that generates an top-down aerial map from values fed in throu
 * Python 2.7
 * Python PIL
 
+# Installing
+
+_Steps for non git users._
+
+    # download latest version and unzip to the "minemap" directory and symlink minemap into your path
+    wget -O minemap.zip https://github.com/wesleywerner/minemap/archive/master.zip && \
+    unzip minemap.zip && \
+    mv minemap-master minemap && cd minemap && \
+    sh link.sh
+
 # Map definition
 
 The map is defined as a json formatted file:
