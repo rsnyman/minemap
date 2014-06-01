@@ -103,7 +103,7 @@ When you start loading in images I recommend you put each map in it's own direct
 
 # Generating the map image
 
-    python minemap.py -m hello-world.json
+    python minemap.py hello-world.json
 
 Also see:
 
