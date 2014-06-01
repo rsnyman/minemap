@@ -332,6 +332,7 @@ class MapMaker(object):
         """
         parser = ArgumentParser(description=DESCRIPTION)
         parser.add_argument('map_file', metavar='FILENAME', help='map definition in JSON format')
+        parser.add_argument('-d', '--debug', action='store_true', default=False, help='print debug symbols on the map')
         parser.add_argument('-v', '--verbose', action='store_true', default=False, help='be verbose')
         self.options = parser.parse_args()
         if self.options.verbose:
@@ -380,19 +381,23 @@ class MapMaker(object):
         Draw map decorations.
         """
         self.log(u'Drawing decorations...')
+        default_font = ImageFont.load_default()
         for deco_name, deco_data in self.map_file.decorations.iteritems():
             deco_image = self.load_image(deco_data[u'image'])
             if deco_data[u'type'] == u'line':
-                for line_data in deco_data[u'points']:
+                for line_title, line_data in deco_data[u'data'].iteritems():
                     points = self.map_file.translate(line_data)
+                    start_pos = (points[0], points[1])
+                    end_pos = (points[2], points[3])
                     if deco_image:
-                        start_pos = (points[0], points[1])
-                        end_pos = (points[2], points[3])
                         step = deco_image.size[0]
                         for x, y in get_line_segments(start_pos, end_pos)[::step]:
                             self.image.paste(deco_image, (x, y), mask=deco_image)
                     else:
                         self.draw.line(points, fill=u'#ffffff', width=2)
+                    if self.options.debug:
+                        self.draw.text(start_pos, line_title, fill='#00ff00', font=default_font)
+                        self.draw.text(end_pos, line_title, fill='#00ff00', font=default_font)
 
     def add_borders(self):
         """
