@@ -24,7 +24,7 @@
         "Memory Falls": {
             "position": [-400, 244]
         },
-        "Grandma's brick house": {
+        "Grandma's Brick House": {
             "position": [-316, 78]
         },
         "Castle": {
@@ -45,16 +45,16 @@
         "Area 42": {
             "position": [-138, 313]
         },
-        "Lost temple of the Great White Handkerchief": {
+        "Lost Temple of the Great White Handkerchief": {
             "position": [-61, 230]
         },
         "Mazal's Home": {
             "position": [-72, 181]
         },
-        "Fountain of everlasting youth": {
+        "Fountain of Everlasting Youth": {
             "position": [-169, 138]
         },
-        "Many Miles underground": {
+        "Many Miles Underground": {
             "position": [-147, 72]
         },
         "The Dizzying Glass Platform": {
@@ -62,6 +62,27 @@
         },
         "The Water Falls": {
             "position": [-112, -138]
+        },
+        "Serendipitous Rescue": {
+            "position": [-78, 145]
+        },
+        "Temple Hill": {
+            "position": [-62, 250]
+        },
+        "Springs": {
+            "position": [15, 258]
+        },
+        "Picnic": {
+            "position": [83, 295]
+        },
+        "DEEP Right": {
+            "position": [-161, 255]
+        },
+        "The DEEP": {
+            "position": [-658, 418]
+        },
+        "The Big R": {
+            "position": [-239, 57]
         }
     },
     "decorations": {

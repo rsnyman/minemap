@@ -121,6 +121,7 @@ class MapFile(object):
         self.messages = []
         self.translate_max_x = None
         self.translate_y_offset = None
+        self.load_and_parse_file()
 
     def load_and_parse_file(self):
         """
